@@ -1,0 +1,53 @@
+# Dependencies
+/node_modules
+.npm
+pids
+libsass_temp
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.nyc_output
+/coverage
+.eslintcache
+.stylelintcache
+.node_repl_history
+
+# Optional npm cache files
+.npm
+
+# dotenv environment variable files
+.env
+.env.*
+!.env.example
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Output of 'npm pack'
+*.tgz
+
+# Next.js build output
+.next
+out
+
+# Nuxt.js build/generate output
+.nuxt
+dist
+.output
+
+# Gatsby files
+.cache/
+# public/ # Uncomment if using Gatsby and not Next.js
+
+# SvelteKit cache directory
+.svelte-kit/
+
+# Parcel bundler cache
+.cache
+.parcel-cache
+
+# Build/Dist folders
+[Dd]ist
+[Bb]uild
+.idea
+.vscode
