@@ -20,4 +20,21 @@ try {
 }
 
 
+export async function refreshToken(req, res) {
+  try {
+    // prefer cookie named refreshToken; fallback to body.refreshToken
+    const token = req.cookies?.refreshToken || req.body?.refreshToken;
+    const result = await service.refresh(token);
+    // set new refresh token cookie
+    res.cookie("refreshToken", result.refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    res.json({ user: result.user, accessToken: result.accessToken });
+  } catch (error) {
+    res.status(401).json({ message: error.message });
+  }
+}
 
