@@ -3,11 +3,17 @@ import { connectDB, disconnectDB } from "./config/db.js";
 
 // import routes
 import productRoutes from "./routes/productRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 
+// Body parsing middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // API Routes
 app.use("/products", productRoutes);
+app.use("/auth", authRoutes);
 
 const PORT = 5001;
 
