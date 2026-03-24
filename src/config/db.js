@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { PrismaNeon } from "@prisma/adapter-neon";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 
 const connectionString = process.env.DATABASE_URL;
@@ -9,7 +9,7 @@ if (!connectionString) {
 }
 
 const prisma = new PrismaClient({
-    adapter: new PrismaNeon({ connectionString }),
+    adapter: new PrismaPg({ connectionString }),
     log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
 });
 

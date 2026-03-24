@@ -34,6 +34,7 @@ model Product {
   brandDetails String[] @default([])
   runtime      Int?
   seller       String?
+  imageUrl     String?
   createdBy    String
   createdA     DateTime @default(now())
 
