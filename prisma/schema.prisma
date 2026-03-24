@@ -12,7 +12,7 @@ datasource db {
   provider = "postgresql"
 }
 
-// USER -> PRODUCT -> WATCHLIST
+// USER -> PRODUCT -> WISHLIST
 model User {
   id       String @id @default(uuid())
   name     String
@@ -22,8 +22,8 @@ model User {
   createdAT DateTime @default(now())
 
   // Relation
-  products       Product[]       @relation("ProductCreator")
-  watchlistItems WatchlistItem[]
+  products      Product[]      @relation("ProductCreator")
+  wishlistItems WishlistItem[]
 }
 
 model Product {
@@ -40,18 +40,18 @@ model Product {
 
   craetor User @relation("ProductCreator", fields: [createdBy], references: [id], onDelete: Cascade)
 
-  WatchlistItems WatchlistItem[]
+  wishlistItems WishlistItem[]
 }
 
-model WatchlistItem {
-  id        String          @id @default(uuid())
+model WishlistItem {
+  id        String         @id @default(uuid())
   userId    String
   productId String
-  status    WatchlistStatus @default(PLANNED)
+  status    WishlistStatus @default(PLANNED)
   rating    Int?
   notes     String?
-  createdAt DateTime        @default(now())
-  updated   DateTime        @default(now())
+  createdAt DateTime       @default(now())
+  updated   DateTime       @default(now())
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -61,7 +61,7 @@ model WatchlistItem {
   @@unique([userId, productId])
 }
 
-enum WatchlistStatus {
+enum WishlistStatus {
   PLANNED
   WATCHING
   COMPLETED

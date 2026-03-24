@@ -1,6 +1,6 @@
 import { prisma } from "../config/db.js";
 
-const addToWatchlist = async (req, res) => {
+const addToWishlist = async (req, res) => {
     const { productId, status, rating, notes } = req.body;
     const userId = req.user.id;
 
@@ -15,7 +15,7 @@ const addToWatchlist = async (req, res) => {
 
     // Check if alredy added
 
-    const existingInWatchlist = await prisma.watchlistItem.findUnique({
+    const existingInWishlist = await prisma.wishlistItem.findUnique({
         where: {
             userId_productId: {
                 userId: userId,
@@ -24,11 +24,11 @@ const addToWatchlist = async (req, res) => {
         },
     });
 
-    if (existingInWatchlist) {
-        return res.status(409).json({ error: "Product alredy in the watchlist" });
+    if (existingInWishlist) {
+        return res.status(409).json({ error: "Product alredy in the wishlist" });
     }
 
-    const watchlistItem = await prisma.watchlistItem.create({
+    const wishlistItem = await prisma.wishlistItem.create({
         data: {
             userId,
             productId,
@@ -41,9 +41,9 @@ const addToWatchlist = async (req, res) => {
     res.status(201).json({
         status: "Success",
         data: {
-            watchlistItem,
+            wishlistItem,
         },
     });
 };
 
-export { addToWatchlist };
+export { addToWishlist };
