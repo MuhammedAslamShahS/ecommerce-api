@@ -1,5 +1,38 @@
 import { prisma } from "../config/db.js";
 
+const getWishlist = async (req, res) => {
+    const userId = req.user.id;
+
+    const wishlistItems = await prisma.wishlistItem.findMany({
+        where: { userId },
+        include: {
+            product: {
+                select: {
+                    id: true,
+                    title: true,
+                    overview: true,
+                    launchDate: true,
+                    brandDetails: true,
+                    runtime: true,
+                    seller: true,
+                    imageUrl: true,
+                },
+            },
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+
+    res.status(200).json({
+        status: "Success",
+        results: wishlistItems.length,
+        data: {
+            wishlistItems,
+        },
+    });
+};
+
 const addToWishlist = async (req, res) => {
     const { productId, status, rating, notes } = req.body;
     const userId = req.user.id;
@@ -46,4 +79,36 @@ const addToWishlist = async (req, res) => {
     });
 };
 
-export { addToWishlist };
+const removeFromWishlist = async (req, res) => {
+    const { productId } = req.params;
+    const userId = req.user.id;
+
+    const wishlistItem = await prisma.wishlistItem.findUnique({
+        where: {
+            userId_productId: {
+                userId,
+                productId,
+            },
+        },
+    });
+
+    if (!wishlistItem) {
+        return res.status(404).json({ error: "Product not found in wishlist" });
+    }
+
+    await prisma.wishlistItem.delete({
+        where: {
+            userId_productId: {
+                userId,
+                productId,
+            },
+        },
+    });
+
+    res.status(200).json({
+        status: "Success",
+        message: "Product removed from wishlist",
+    });
+};
+
+export { addToWishlist, getWishlist, removeFromWishlist };

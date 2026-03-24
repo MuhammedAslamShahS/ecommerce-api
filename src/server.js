@@ -5,6 +5,8 @@ import { connectDB, disconnectDB } from "./config/db.js";
 import productRoutes from "./routes/productRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
+import adminProductRoutes from "./routes/adminProductRoutes.js";
 
 const app = express();
 
@@ -16,6 +18,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/products", productRoutes);
 app.use("/auth", authRoutes);
 app.use("/wishlist", wishlistRoutes);
+app.use("/cart", cartRoutes);
+app.use("/admin/products", adminProductRoutes);
 
 const PORT = 5001;
 

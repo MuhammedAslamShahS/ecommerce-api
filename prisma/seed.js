@@ -15,6 +15,8 @@ const prisma = new PrismaClient({
 
 const userId = "856423bf-be66-45d1-98cb-dad39e070aae";
 const seedUserEmail = "seed.user@example.com";
+const adminUserId = "96c0e9db-d178-4d46-8833-d745d8c39b34";
+const adminUserEmail = "admin@example.com";
 
 const products = [
     {
@@ -55,6 +57,7 @@ const main = async () => {
     console.log("seeding products...");
 
     const hashedPassword = await bcrypt.hash("seed123456", 10);
+    const hashedAdminPassword = await bcrypt.hash("admin123456", 10);
 
     const seedUser = await prisma.user.upsert({
         where: { id: userId },
@@ -67,7 +70,22 @@ const main = async () => {
         },
     });
 
+    const adminUser = await prisma.user.upsert({
+        where: { id: adminUserId },
+        update: {
+            role: "ADMIN",
+        },
+        create: {
+            id: adminUserId,
+            name: "Admin User",
+            email: adminUserEmail,
+            password: hashedAdminPassword,
+            role: "ADMIN",
+        },
+    });
+
     console.log(`Using seed user ${seedUser.email}`);
+    console.log(`Using admin user ${adminUser.email}`);
 
     // Existing products delete cheyyunnu
     // Seed rerun cheyyumbo duplicate data varathirikkan

@@ -38,6 +38,7 @@ const register = async (req, res) => {
                 id: user.id,
                 name: name,
                 email: email,
+                role: user.role,
             },
             token,
         },
@@ -75,6 +76,7 @@ const login = async (req, res) => {
             user: {
                 id: user.id,
                 email: email,
+                role: user.role,
             },
             token,
         },
