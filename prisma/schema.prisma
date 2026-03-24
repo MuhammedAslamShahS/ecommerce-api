@@ -57,6 +57,8 @@ model WatchlistItem {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
 }
 
 enum WatchlistStatus {
