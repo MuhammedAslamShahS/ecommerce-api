@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { connectDB, disconnectDB } from "./config/db.js";
 
 // import routes
@@ -9,6 +10,34 @@ import cartRoutes from "./routes/cartRoutes.js";
 import adminProductRoutes from "./routes/adminProductRoutes.js";
 
 const app = express();
+
+const defaultAllowedOrigins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+];
+
+const configuredOrigins = (process.env.CLIENT_URLS || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+const allowedOrigins = [...new Set([...defaultAllowedOrigins, ...configuredOrigins])];
+
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            // Allow server-to-server tools and the local frontends we know about.
+            if (!origin || allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            return callback(new Error("Origin not allowed by CORS"));
+        },
+        credentials: true,
+    }),
+);
 
 // Body parsing middleware
 app.use(express.json());
