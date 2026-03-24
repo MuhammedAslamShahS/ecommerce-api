@@ -31,12 +31,18 @@ model User {
 model Product {
   id           String   @id @default(uuid())
   title        String
+  description  String?
   overview     String?
-  launchDate   Int
+  launchDate   Int?
+  price        Float    @default(0)
+  stock        Int      @default(0)
+  brand        String?
+  category     String?
   brandDetails String[] @default([])
   runtime      Int?
   seller       String?
   imageUrl     String?
+  isActive     Boolean  @default(true)
   createdBy    String
   createdA     DateTime @default(now())
 

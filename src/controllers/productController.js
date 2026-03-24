@@ -1,73 +1,61 @@
 import { prisma } from "../config/db.js";
+import { formatProduct, formatProducts, productSelect } from "../utils/productFormatter.js";
 
-const productSelect = {
-    id: true,
-    title: true,
-    overview: true,
-    launchDate: true,
-    brandDetails: true,
-    runtime: true,
-    seller: true,
-    imageUrl: true,
-    createdBy: true,
-    createdA: true,
-};
-
-const parseLaunchDate = (launchDate) => {
-    if (launchDate === undefined) {
+const parsePrice = (price) => {
+    if (price === undefined) {
         return undefined;
     }
 
-    const parsedLaunchDate = Number(launchDate);
+    const parsedPrice = Number(price);
 
-    if (!Number.isInteger(parsedLaunchDate)) {
+    if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
         return null;
     }
 
-    return parsedLaunchDate;
+    return parsedPrice;
 };
 
-const parseRuntime = (runtime) => {
-    if (runtime === undefined || runtime === null || runtime === "") {
+const parseStock = (stock) => {
+    if (stock === undefined) {
         return undefined;
     }
 
-    const parsedRuntime = Number(runtime);
+    const parsedStock = Number(stock);
 
-    if (!Number.isInteger(parsedRuntime) || parsedRuntime < 1) {
+    if (!Number.isInteger(parsedStock) || parsedStock < 0) {
         return null;
     }
 
-    return parsedRuntime;
+    return parsedStock;
 };
 
-const parseBrandDetails = (brandDetails) => {
-    if (brandDetails === undefined) {
+const parseIsActive = (isActive) => {
+    if (isActive === undefined) {
         return undefined;
     }
 
-    if (!Array.isArray(brandDetails)) {
+    if (typeof isActive !== "boolean") {
         return null;
     }
 
-    return brandDetails;
+    return isActive;
 };
 
-const buildProductData = ({ title, overview, launchDate, brandDetails, runtime, seller, imageUrl }) => {
-    const parsedLaunchDate = parseLaunchDate(launchDate);
-    const parsedRuntime = parseRuntime(runtime);
-    const parsedBrandDetails = parseBrandDetails(brandDetails);
+const buildProductData = ({ title, description, brand, category, price, stock, imageUrl, isActive }) => {
+    const parsedPrice = parsePrice(price);
+    const parsedStock = parseStock(stock);
+    const parsedIsActive = parseIsActive(isActive);
 
-    if (launchDate !== undefined && parsedLaunchDate === null) {
-        return { error: "Launch date must be an integer" };
+    if (price !== undefined && parsedPrice === null) {
+        return { error: "Price must be a valid positive number" };
     }
 
-    if (runtime !== undefined && parsedRuntime === null) {
-        return { error: "Runtime must be a positive integer" };
+    if (stock !== undefined && parsedStock === null) {
+        return { error: "Stock must be a non-negative integer" };
     }
 
-    if (brandDetails !== undefined && parsedBrandDetails === null) {
-        return { error: "Brand details must be an array" };
+    if (isActive !== undefined && parsedIsActive === null) {
+        return { error: "isActive must be true or false" };
     }
 
     const data = {};
@@ -76,28 +64,35 @@ const buildProductData = ({ title, overview, launchDate, brandDetails, runtime, 
         data.title = title;
     }
 
-    if (overview !== undefined) {
-        data.overview = overview;
+    if (description !== undefined) {
+        data.description = description;
+        data.overview = description;
     }
 
-    if (parsedLaunchDate !== undefined) {
-        data.launchDate = parsedLaunchDate;
+    if (brand !== undefined) {
+        data.brand = brand;
+        data.seller = brand;
     }
 
-    if (parsedBrandDetails !== undefined) {
-        data.brandDetails = parsedBrandDetails;
+    if (category !== undefined) {
+        data.category = category;
+        data.brandDetails = category ? [category] : [];
     }
 
-    if (parsedRuntime !== undefined) {
-        data.runtime = parsedRuntime;
+    if (parsedPrice !== undefined) {
+        data.price = parsedPrice;
     }
 
-    if (seller !== undefined) {
-        data.seller = seller;
+    if (parsedStock !== undefined) {
+        data.stock = parsedStock;
     }
 
     if (imageUrl !== undefined) {
         data.imageUrl = imageUrl;
+    }
+
+    if (parsedIsActive !== undefined) {
+        data.isActive = parsedIsActive;
     }
 
     return { data };
@@ -115,7 +110,7 @@ const getProducts = async (req, res) => {
         status: "Success",
         results: products.length,
         data: {
-            products,
+            products: formatProducts(products),
         },
     });
 };
@@ -135,26 +130,27 @@ const getProductById = async (req, res) => {
     res.status(200).json({
         status: "Success",
         data: {
-            product,
+            product: formatProduct(product),
         },
     });
 };
 
 const createProduct = async (req, res) => {
-    const { title, overview, launchDate, brandDetails, runtime, seller, imageUrl } = req.body;
+    const { title, description, price, stock, brand, category, imageUrl, isActive } = req.body;
 
-    if (!title || launchDate === undefined) {
-        return res.status(400).json({ error: "Title and launch date are required" });
+    if (!title || price === undefined) {
+        return res.status(400).json({ error: "Title and price are required" });
     }
 
     const { data, error } = buildProductData({
         title,
-        overview,
-        launchDate,
-        brandDetails: brandDetails ?? [],
-        runtime,
-        seller,
+        description,
+        price,
+        stock,
+        brand,
+        category,
         imageUrl,
+        isActive: isActive ?? true,
     });
 
     if (error) {
@@ -173,7 +169,7 @@ const createProduct = async (req, res) => {
         status: "Success",
         message: "Product created successfully",
         data: {
-            product,
+            product: formatProduct(product),
         },
     });
 };
@@ -210,7 +206,7 @@ const updateProduct = async (req, res) => {
         status: "Success",
         message: "Product updated successfully",
         data: {
-            product,
+            product: formatProduct(product),
         },
     });
 };

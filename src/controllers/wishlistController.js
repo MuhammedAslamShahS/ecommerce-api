@@ -1,4 +1,5 @@
 import { prisma } from "../config/db.js";
+import { formatProduct, productSelect } from "../utils/productFormatter.js";
 
 const getWishlist = async (req, res) => {
     const userId = req.user.id;
@@ -7,16 +8,7 @@ const getWishlist = async (req, res) => {
         where: { userId },
         include: {
             product: {
-                select: {
-                    id: true,
-                    title: true,
-                    overview: true,
-                    launchDate: true,
-                    brandDetails: true,
-                    runtime: true,
-                    seller: true,
-                    imageUrl: true,
-                },
+                select: productSelect,
             },
         },
         orderBy: {
@@ -28,7 +20,10 @@ const getWishlist = async (req, res) => {
         status: "Success",
         results: wishlistItems.length,
         data: {
-            wishlistItems,
+            wishlistItems: wishlistItems.map((wishlistItem) => ({
+                ...wishlistItem,
+                product: formatProduct(wishlistItem.product),
+            })),
         },
     });
 };

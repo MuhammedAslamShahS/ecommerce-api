@@ -1,15 +1,5 @@
 import { prisma } from "../config/db.js";
-
-const productSelect = {
-    id: true,
-    title: true,
-    overview: true,
-    launchDate: true,
-    brandDetails: true,
-    runtime: true,
-    seller: true,
-    imageUrl: true,
-};
+import { formatProduct, productSelect } from "../utils/productFormatter.js";
 
 const parseQuantity = (quantity) => {
     const parsedQuantity = Number(quantity ?? 1);
@@ -40,7 +30,10 @@ const getCart = async (req, res) => {
         status: "Success",
         results: cartItems.length,
         data: {
-            cartItems,
+            cartItems: cartItems.map((cartItem) => ({
+                ...cartItem,
+                product: formatProduct(cartItem.product),
+            })),
         },
     });
 };
@@ -99,7 +92,10 @@ const addToCart = async (req, res) => {
             status: "Success",
             message: "Cart quantity updated",
             data: {
-                cartItem,
+                cartItem: {
+                    ...cartItem,
+                    product: formatProduct(cartItem.product),
+                },
             },
         });
     }
@@ -121,7 +117,10 @@ const addToCart = async (req, res) => {
         status: "Success",
         message: "Product added to cart",
         data: {
-            cartItem,
+            cartItem: {
+                ...cartItem,
+                product: formatProduct(cartItem.product),
+            },
         },
     });
 };
@@ -170,7 +169,10 @@ const updateCartItem = async (req, res) => {
         status: "Success",
         message: "Cart item updated",
         data: {
-            cartItem,
+            cartItem: {
+                ...cartItem,
+                product: formatProduct(cartItem.product),
+            },
         },
     });
 };
