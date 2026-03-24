@@ -8,7 +8,8 @@
     "dev": "nodemon src/server.js",
     "postinstall": "prisma generate",
     "migrate": "prisma migrate dev",
-    "generate": "prisma generate"
+    "generate": "prisma generate",
+    "seed:products": "node prisma/seed.js"
   },
   "repository": {
     "type": "git",
@@ -27,6 +28,7 @@
     "prisma": "^7.5.0"
   },
   "dependencies": {
+    "@prisma/adapter-neon": "^7.5.0",
     "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.5.0",
     "bcryptjs": "^3.0.3",
