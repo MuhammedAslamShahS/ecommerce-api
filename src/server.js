@@ -10,6 +10,7 @@ import cartRoutes from "./routes/cartRoutes.js";
 import adminProductRoutes from "./routes/adminProductRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import adminOrderRoutes from "./routes/adminOrderRoutes.js";
+import addressRoutes from "./routes/addressRoutes.js";
 
 const app = express();
 
@@ -51,6 +52,7 @@ app.use("/auth", authRoutes);
 app.use("/wishlist", wishlistRoutes);
 app.use("/cart", cartRoutes);
 app.use("/orders", orderRoutes);
+app.use("/addresses", addressRoutes);
 app.use("/admin/products", adminProductRoutes);
 app.use("/admin/orders", adminOrderRoutes);
 

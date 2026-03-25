@@ -27,6 +27,7 @@ model User {
   wishlistItems WishlistItem[]
   cartItems     CartItem[]
   orders        Order[]
+  addresses     Address[]
 }
 
 model Product {
@@ -92,11 +93,37 @@ model Order {
   paymentMethod String
   totalAmount   Float
   status        OrderStatus @default(PLACED)
+  shippingFullName   String
+  shippingPhone      String
+  shippingLine1      String
+  shippingLine2      String?
+  shippingCity       String
+  shippingState      String
+  shippingPostalCode String
+  shippingCountry    String
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   orderItems OrderItem[]
+}
+
+model Address {
+  id         String   @id @default(uuid())
+  userId     String
+  fullName   String
+  phone      String
+  line1      String
+  line2      String?
+  city       String
+  state      String
+  postalCode String
+  country    String
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model OrderItem {

@@ -19,6 +19,16 @@ const formatOrder = (order) => {
         paymentMethod: order.paymentMethod,
         totalAmount: order.totalAmount,
         status: order.status,
+        shippingAddress: {
+            fullName: order.shippingFullName,
+            phone: order.shippingPhone,
+            line1: order.shippingLine1,
+            line2: order.shippingLine2,
+            city: order.shippingCity,
+            state: order.shippingState,
+            postalCode: order.shippingPostalCode,
+            country: order.shippingCountry,
+        },
         createdAt: order.createdAt,
         updatedAt: order.updatedAt,
         items: order.orderItems.map(formatOrderItem),
@@ -103,14 +113,30 @@ const getAdminOrders = async (req, res) => {
 const createOrder = async (req, res) => {
     const userId = req.user.id;
     const paymentMethod = String(req.body.paymentMethod || "").trim().toLowerCase();
+    const addressId = String(req.body.addressId || "").trim();
     const normalizedItems = normalizeOrderItems(req.body.items);
 
     if (!validPaymentMethods.has(paymentMethod)) {
         return res.status(400).json({ error: "Valid payment method is required" });
     }
 
+    if (!addressId) {
+        return res.status(400).json({ error: "Delivery address is required" });
+    }
+
     if (!normalizedItems) {
         return res.status(400).json({ error: "At least one valid order item is required" });
+    }
+
+    const selectedAddress = await prisma.address.findFirst({
+        where: {
+            id: addressId,
+            userId,
+        },
+    });
+
+    if (!selectedAddress) {
+        return res.status(404).json({ error: "Selected address was not found" });
     }
 
     const productIds = [...new Set(normalizedItems.map((item) => item.productId))];
@@ -160,6 +186,14 @@ const createOrder = async (req, res) => {
                 userId,
                 paymentMethod,
                 totalAmount,
+                shippingFullName: selectedAddress.fullName,
+                shippingPhone: selectedAddress.phone,
+                shippingLine1: selectedAddress.line1,
+                shippingLine2: selectedAddress.line2,
+                shippingCity: selectedAddress.city,
+                shippingState: selectedAddress.state,
+                shippingPostalCode: selectedAddress.postalCode,
+                shippingCountry: selectedAddress.country,
                 orderItems: {
                     create: normalizedItems.map((item) => {
                         const product = productMap.get(item.productId);
