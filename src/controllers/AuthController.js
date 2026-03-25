@@ -75,6 +75,7 @@ const login = async (req, res) => {
         data: {
             user: {
                 id: user.id,
+                name: user.name,
                 email: email,
                 role: user.role,
             },
@@ -96,4 +97,35 @@ const logout = async (req, res) => {
     });
 };
 
-export { register, login, logout };
+const getCurrentUser = async (req, res) => {
+    const user = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            createdAT: true,
+            _count: {
+                select: {
+                    wishlistItems: true,
+                    cartItems: true,
+                    orders: true,
+                },
+            },
+        },
+    });
+
+    if (!user) {
+        return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json({
+        status: "success",
+        data: {
+            user,
+        },
+    });
+};
+
+export { register, login, logout, getCurrentUser };
