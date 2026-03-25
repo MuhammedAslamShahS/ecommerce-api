@@ -1,6 +1,7 @@
 import { prisma } from "../config/db.js";
 
 const validPaymentMethods = new Set(["cod", "upi", "card"]);
+const validOrderStatuses = new Set(["PLACED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]);
 
 const formatOrderItem = (orderItem) => ({
     id: orderItem.id,
@@ -11,16 +12,24 @@ const formatOrderItem = (orderItem) => ({
     quantity: orderItem.quantity,
 });
 
-const formatOrder = (order) => ({
-    id: order.id,
-    userId: order.userId,
-    paymentMethod: order.paymentMethod,
-    totalAmount: order.totalAmount,
-    status: order.status,
-    createdAt: order.createdAt,
-    updatedAt: order.updatedAt,
-    items: order.orderItems.map(formatOrderItem),
-});
+const formatOrder = (order) => {
+    const formattedOrder = {
+        id: order.id,
+        userId: order.userId,
+        paymentMethod: order.paymentMethod,
+        totalAmount: order.totalAmount,
+        status: order.status,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+        items: order.orderItems.map(formatOrderItem),
+    };
+
+    if (order.user) {
+        formattedOrder.user = order.user;
+    }
+
+    return formattedOrder;
+};
 
 const normalizeOrderItems = (items) => {
     if (!Array.isArray(items) || items.length === 0) {
@@ -50,6 +59,32 @@ const getOrders = async (req, res) => {
         where: { userId },
         include: {
             orderItems: true,
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+
+    res.status(200).json({
+        status: "Success",
+        results: orders.length,
+        data: {
+            orders: orders.map(formatOrder),
+        },
+    });
+};
+
+const getAdminOrders = async (req, res) => {
+    const orders = await prisma.order.findMany({
+        include: {
+            orderItems: true,
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                },
+            },
         },
         orderBy: {
             createdAt: "desc",
@@ -176,4 +211,47 @@ const createOrder = async (req, res) => {
     });
 };
 
-export { createOrder, getOrders };
+const updateOrderStatus = async (req, res) => {
+    const { id } = req.params;
+    const nextStatus = String(req.body.status || "").trim().toUpperCase();
+
+    if (!validOrderStatuses.has(nextStatus)) {
+        return res.status(400).json({ error: "Valid order status is required" });
+    }
+
+    const existingOrder = await prisma.order.findUnique({
+        where: { id },
+        select: { id: true },
+    });
+
+    if (!existingOrder) {
+        return res.status(404).json({ error: "Order not found" });
+    }
+
+    const order = await prisma.order.update({
+        where: { id },
+        data: {
+            status: nextStatus,
+        },
+        include: {
+            orderItems: true,
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                },
+            },
+        },
+    });
+
+    res.status(200).json({
+        status: "Success",
+        message: "Order status updated successfully",
+        data: {
+            order: formatOrder(order),
+        },
+    });
+};
+
+export { createOrder, getAdminOrders, getOrders, updateOrderStatus };
