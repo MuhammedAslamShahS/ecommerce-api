@@ -84,6 +84,66 @@ const getOrders = async (req, res) => {
     });
 };
 
+const cancelOrder = async (req, res) => {
+    const userId = req.user.id;
+    const orderId = req.params.id;
+
+    const existingOrder = await prisma.order.findFirst({
+        where: {
+            id: orderId,
+            userId,
+        },
+        include: {
+            orderItems: true,
+        },
+    });
+
+    if (!existingOrder) {
+        return res.status(404).json({ error: "Order not found" });
+    }
+
+    if (existingOrder.status === "CANCELLED") {
+        return res.status(400).json({ error: "This order is already cancelled" });
+    }
+
+    if (!["PLACED", "PROCESSING"].includes(existingOrder.status)) {
+        return res.status(400).json({
+            error: "Only placed or processing orders can be cancelled",
+        });
+    }
+
+    const cancelledOrder = await prisma.$transaction(async (transaction) => {
+        for (const item of existingOrder.orderItems) {
+            await transaction.product.update({
+                where: { id: item.productId },
+                data: {
+                    stock: {
+                        increment: item.quantity,
+                    },
+                },
+            });
+        }
+
+        return transaction.order.update({
+            where: { id: orderId },
+            data: {
+                status: "CANCELLED",
+            },
+            include: {
+                orderItems: true,
+            },
+        });
+    });
+
+    res.status(200).json({
+        status: "Success",
+        message: "Order cancelled successfully",
+        data: {
+            order: formatOrder(cancelledOrder),
+        },
+    });
+};
+
 const getAdminOrders = async (req, res) => {
     const orders = await prisma.order.findMany({
         include: {
@@ -288,4 +348,4 @@ const updateOrderStatus = async (req, res) => {
     });
 };
 
-export { createOrder, getAdminOrders, getOrders, updateOrderStatus };
+export { cancelOrder, createOrder, getAdminOrders, getOrders, updateOrderStatus };
