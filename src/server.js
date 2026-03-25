@@ -8,6 +8,7 @@ import authRoutes from "./routes/authRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import adminProductRoutes from "./routes/adminProductRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use("/products", productRoutes);
 app.use("/auth", authRoutes);
 app.use("/wishlist", wishlistRoutes);
 app.use("/cart", cartRoutes);
+app.use("/orders", orderRoutes);
 app.use("/admin/products", adminProductRoutes);
 
 const PORT = 5001;
