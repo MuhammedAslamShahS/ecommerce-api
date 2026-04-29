@@ -1,6 +1,8 @@
 import { prisma } from "../config/db.js";
 import { formatProduct, formatProducts, productSelect } from "../utils/productFormatter.js";
 
+const PRODUCT_SECTIONS = ["NEW IN", "SALES", "COLLECTIONS", "WEDDING", "DEALS"];
+
 const parsePrice = (price) => {
     if (price === undefined) {
         return undefined;
@@ -41,10 +43,33 @@ const parseIsActive = (isActive) => {
     return isActive;
 };
 
-const buildProductData = ({ title, description, brand, category, price, stock, imageUrl, isActive }) => {
+const parseSection = (section) => {
+    if (section === undefined) {
+        return undefined;
+    }
+
+    if (section === null || section === "") {
+        return "";
+    }
+
+    if (typeof section !== "string") {
+        return null;
+    }
+
+    const normalizedSection = section.trim().toUpperCase();
+
+    if (!PRODUCT_SECTIONS.includes(normalizedSection)) {
+        return null;
+    }
+
+    return normalizedSection;
+};
+
+const buildProductData = ({ title, description, brand, category, section, price, stock, imageUrl, isActive }) => {
     const parsedPrice = parsePrice(price);
     const parsedStock = parseStock(stock);
     const parsedIsActive = parseIsActive(isActive);
+    const parsedSection = parseSection(section);
 
     if (price !== undefined && parsedPrice === null) {
         return { error: "Price must be a valid positive number" };
@@ -56,6 +81,10 @@ const buildProductData = ({ title, description, brand, category, price, stock, i
 
     if (isActive !== undefined && parsedIsActive === null) {
         return { error: "isActive must be true or false" };
+    }
+
+    if (section !== undefined && parsedSection === null) {
+        return { error: `Section must be one of: ${PRODUCT_SECTIONS.join(", ")}` };
     }
 
     const data = {};
@@ -77,6 +106,10 @@ const buildProductData = ({ title, description, brand, category, price, stock, i
     if (category !== undefined) {
         data.category = category;
         data.brandDetails = category ? [category] : [];
+    }
+
+    if (parsedSection !== undefined) {
+        data.section = parsedSection || null;
     }
 
     if (parsedPrice !== undefined) {
@@ -136,7 +169,7 @@ const getProductById = async (req, res) => {
 };
 
 const createProduct = async (req, res) => {
-    const { title, description, price, stock, brand, category, imageUrl, isActive } = req.body;
+    const { title, description, price, stock, brand, category, section, imageUrl, isActive } = req.body;
 
     if (!title || price === undefined) {
         return res.status(400).json({ error: "Title and price are required" });
@@ -149,6 +182,7 @@ const createProduct = async (req, res) => {
         stock,
         brand,
         category,
+        section,
         imageUrl,
         isActive: isActive ?? true,
     });
